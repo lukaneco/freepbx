@@ -3,6 +3,10 @@ version: '3.3'
 services:
 
   freepbx:
+    #build:
+    #  context: ./
+    #  dockerfile: ./Dockerfile
+    #image: flaviostutz/freepbx
     build: .
     image: flaviostutz/freepbx
     ports:

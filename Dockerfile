@@ -121,9 +121,18 @@ ADD freepbx_chown.conf /etc/asterisk/
 RUN a2ensite default-ssl && \
     a2enmod ssl
 
-CMD [ "/startup.sh" ]
+#fix ".htaccess files are disable on this webserver. Please enable them"
+RUN sed -i -r "s/AllowOverride None/AllowOverride All/g" /etc/apache2/apache2.conf
 
+#fix "freepbx_1 | standard_init_linux.go:211: exec user process caused "no such file or directory""
+#RUN dos2unix /startup.sh
+#RUN chmod +x /startup.sh
+#CMD [ "/startup.sh" ]
 EXPOSE 80 3306 5060/udp 5061/udp 5160/udp 5161/udp 10000-40000/udp
+
+
+#ENTRYPOINT ["/bin/bash","/startup.sh" ]
+CMD [ "/startup.sh" ]
 
 #recordings data
 VOLUME [ "/var/spool/asterisk/monitor" ]
