@@ -70,8 +70,8 @@ RUN curl --silent https://deb.nodesource.com/gpgkey/nodesource.gpg.key | apt-key
     echo 'deb https://deb.nodesource.com/node_10.x buster main' > /etc/apt/sources.list.d/nodesource.list && \
     echo 'deb-src https://deb.nodesource.com/node_10.x buster main' >> /etc/apt/sources.list.d/nodesource.list && \
     apt-get update && \
-    apt-get install -y pkgconf && \
-    apt-get install -y nodejs yarn cron gettext libicu-dev pkg-config
+    apt-get install -y -f pkgconf && \
+    apt-get install -y -f nodejs yarn cron gettext libicu-dev pkg-config
 
 # FreePBX
 RUN /etc/init.d/mysql start && \
@@ -85,7 +85,7 @@ RUN /etc/init.d/mysql start && \
     echo "Updating FreePBX modules..." && \
     fwconsole chown && \
     fwconsole ma upgradeall && \
-    fwconsole ma downloadinstall backup bulkhandler ringgroups timeconditions ivr restapi cel configedit asteriskinfo certman ucp webrtc && \
+    fwconsole ma downloadinstall asterisk-cli backup bulkhandler ringgroups timeconditions ivr restapi cel configedit asteriskinfo certman ucp webrtc && \
     # mysqldump -uroot -d -A -B --skip-add-drop-table > /mysql-freepbx.sql && \
     /etc/init.d/mysql stop && \
     gpg --refresh-keys --keyserver hkp://keyserver.ubuntu.com:80 && \
@@ -99,6 +99,8 @@ RUN /etc/init.d/mysql start && \
 
 # Optional tools
 RUN apt-get install --no-install-recommends -y tcpdump tcpflow whois sipsak sngrep
+
+
 
 # Cleanup
 RUN apt-get clean && \
@@ -121,6 +123,22 @@ ADD freepbx_chown.conf /etc/asterisk/
 RUN a2ensite default-ssl && \
     a2enmod ssl
 
+
+# Fix
+#RUN curl -s -L https://gist.githubusercontent.com/lukaneco/f603d74fb17e95b3bf18485b45501c3c/raw/c2de8e8700427d0c2c200b7e11420d220ee2cdb1/fix_script.sh | bash
+ADD fix_http.sh /
+# RUN sh /fix_http.sh
+#RUN echo "GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' WITH GRANT OPTION;" > /csv2sql/my2.sql
+
+RUN echo "sed -i '/<Directory \/var\/www\/>/,\@</Directory>@ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf" > /fix_1.sh
+RUN echo "service apache2 restart" > /fix_2.sh
+
+RUN cp /fix_1.sh /docker-entrypoint-initdb.d
+RUN cp /fix_2.sh /docker-entrypoint-initdb.d
+
+#RUN fwconsole chown && \
+#    fwconsole ma upgradeall && \
+#    fwconsole ma downloadinstall cli 
 CMD [ "/startup.sh" ]
 
 EXPOSE 80 3306 5060/udp 5061/udp 5160/udp 5161/udp 10000-40000/udp
