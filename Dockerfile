@@ -141,7 +141,15 @@ RUN cp /fix_2.sh /docker-entrypoint-initdb.d
 #    fwconsole ma downloadinstall cli 
 CMD [ "/startup.sh" ]
 
+#fix "freepbx_1 | standard_init_linux.go:211: exec user process caused "no such file or directory""
+#RUN dos2unix /startup.sh
+#RUN chmod +x /startup.sh
+#CMD [ "/startup.sh" ]
 EXPOSE 80 3306 5060/udp 5061/udp 5160/udp 5161/udp 10000-40000/udp
+
+
+#ENTRYPOINT ["/bin/bash","/startup.sh" ]
+CMD [ "/startup.sh" ]
 
 #recordings data
 VOLUME [ "/var/spool/asterisk/monitor" ]
